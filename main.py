@@ -1,4 +1,10 @@
 import itertools
+import pandas as pd
+from pypokerengine.utils.card_utils import gen_cards, estimate_hole_card_win_rate
+
+NB_SIMULATION = 10000  # 模拟的次数，用于估算胜率
+NB_PLAYER = 6  # 玩家数量
+community_card = []  # 公共牌为空
 
 def generate_all_combinations():
     ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -11,14 +17,6 @@ def generate_all_combinations():
     all_combinations = list(itertools.combinations(deck, 2))
 
     return all_combinations
-
-
-from pypokerengine.utils.card_utils import gen_cards, estimate_hole_card_win_rate
-
-NB_SIMULATION = 10000  # 模拟的次数，用于估算胜率
-NB_PLAYER = 6  # 玩家数量
-community_card = []  # 公共牌为空
-
 
 def calculate_probabilities(all_combinations):
     probabilities = {}
@@ -44,9 +42,19 @@ def calculate_probabilities(all_combinations):
     return probabilities
 
 if __name__ == "__main__":
+    # 生成所有手牌组合和计算胜率
     all_combinations = generate_all_combinations()
     probabilities = calculate_probabilities(all_combinations)
 
-    # 输出每种手牌组合的胜率
-    for hole_cards, win_rate in probabilities.items():
-        print(f"手牌组合: {hole_cards}, 胜率: {win_rate:.4f}")
+    # 将数据存储到DataFrame中
+    df_data = {
+        '手牌组合': [f"{hole_cards[0]}, {hole_cards[1]}" for hole_cards in probabilities.keys()],
+        '胜率': [win_rate for win_rate in probabilities.values()]
+    }
+    df = pd.DataFrame(df_data)
+
+    # 将DataFrame保存到Excel文件
+    excel_file = 'hand_combinations_10000_win_rate.xlsx'
+    df.to_excel(excel_file, index=False)
+
+    print(f"数据已保存到 {excel_file}")
